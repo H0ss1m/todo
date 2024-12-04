@@ -25,13 +25,12 @@ class _HomeState extends State<Home> {
   ];
 
   int currentState = 1;
-  // ignore: prefer_typing_uninitialized_variables
-  var database;
+  late Database database;
+  var scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
-    // createDatabases();
   }
 
   @override
@@ -42,12 +41,11 @@ class _HomeState extends State<Home> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // try {
-          //   throw ("There is error");
-          // } catch (error) {
-          //   // ignore: avoid_print
-          //   print("Error on ${error.toString()}");
-          // }
+          scaffoldKey.currentState?.showBottomSheet((context) => Container(
+            width: double.infinity,
+            height: 120,
+            color: Colors.red,
+          ));
         },
         child: const Icon(Icons.add),
       ),
@@ -78,7 +76,7 @@ class _HomeState extends State<Home> {
         print("Database created");
         await database
             .execute(
-                "CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT, date TEXT, time TEXT, status TEXT,)")
+                'CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT, date TEXT, time TEXT, status TEXT,)')
             .then((value) {
           print("table created");
         }).catchError((error) {
@@ -91,5 +89,18 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // void insertDatabase() {}
+  void insertDatabase() {
+    database.transaction(
+      (txn) async {
+        txn
+            .rawInsert(
+                'INSERT INTO tasks(title, date, time, status) VALUES("first task", "46615", "646560", "new")')
+            .then((value) {
+          print("$value inserted successfully");
+        }).catchError((error) {
+          print("There was an error when inserting ${error.toString()}");
+        });
+      },
+    );
+  }
 }
