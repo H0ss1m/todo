@@ -1,3 +1,4 @@
+import 'package:conditional_builder_rec/conditional_builder_rec.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
@@ -5,6 +6,7 @@ import 'package:todo/modules/archive/archive.dart';
 import 'package:todo/modules/complete/doneTasks.dart';
 import 'package:todo/modules/newtask/newTask.dart';
 import 'package:todo/shared/component/component.dart';
+import 'package:todo/shared/component/constants.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -15,9 +17,9 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<Widget> screens = [
-    const Donetaskes(),
-    const Newtask(),
-    const Archive(),
+    Newtask(),
+    Donetaskes(),
+    Archive(),
   ];
 
   List<String> title = [
@@ -58,89 +60,102 @@ class _HomeState extends State<Home> {
                 date: dateController.text,
                 time: timeController.text,
               ).then((value) {
-                // ignore: use_build_context_synchronously
-                Navigator.pop(context);
-                setState(() {
-                  isBottomSheetShown = !isBottomSheetShown;
+                getDatabase(database).then((value) {
+                  // ignore: use_build_context_synchronously
+                  Navigator.pop(context);
+                  setState(() {
+                    tasks = value;
+                    isBottomSheetShown = !isBottomSheetShown;
+                  });
                 });
               });
             }
           } else {
-            scaffoldKey.currentState?.showBottomSheet(
-              (context) => Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(30),
-                      topLeft: Radius.circular(30)),
-                  color: Colors.white,
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 25),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      textForm(
-                          text: "Task",
-                          keyboardType: TextInputType.text,
-                          prefix: const Icon(Icons.title),
-                          controller: taskController,
-                          onTap: () {}),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      textForm(
-                          text: "Time",
-                          keyboardType: TextInputType.none,
-                          prefix: const Icon(Icons.watch_later_outlined),
-                          controller: timeController,
-                          onTap: () {
-                            showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.now(),
-                            ).then((value) {
-                              // ignore: use_build_context_synchronously
-                              timeController.text =
+            scaffoldKey.currentState
+                ?.showBottomSheet(
+                  (context) => Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(30),
+                          topLeft: Radius.circular(30)),
+                      color: Colors.white,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 25),
+                    child: Form(
+                      key: formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          textForm(
+                              text: "Task",
+                              errorMessage: "Task must not be empty",
+                              keyboardType: TextInputType.text,
+                              prefix: const Icon(Icons.title),
+                              controller: taskController,
+                              onTap: () {}),
+                          const SizedBox(
+                            height: 15,
+                          ),
+                          textForm(
+                              text: "Time",
+                              errorMessage: "Time mustn't be empty",
+                              keyboardType: TextInputType.none,
+                              prefix: const Icon(Icons.watch_later_outlined),
+                              controller: timeController,
+                              onTap: () {
+                                showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
+                                ).then((value) {
                                   // ignore: use_build_context_synchronously
-                                  value!.format(context).toString();
-                            });
-                          }),
-                      const SizedBox(
-                        height: 15,
+                                  timeController.text =
+                                      // ignore: use_build_context_synchronously
+                                      value!.format(context).toString();
+                                });
+                              }),
+                          const SizedBox(
+                            height: 15,
+                          ),
+                          textForm(
+                              text: "Date",
+                              errorMessage: "Date mustn't be empty",
+                              keyboardType: TextInputType.none,
+                              prefix: const Icon(Icons.calendar_month),
+                              controller: dateController,
+                              onTap: () {
+                                showDatePicker(
+                                        context: context,
+                                        firstDate: DateTime.now(),
+                                        lastDate: DateTime(2030),
+                                        initialDate: DateTime.now())
+                                    .then((value) {
+                                  dateController.text =
+                                      DateFormat.yMMMd().format(value!);
+                                });
+                              }),
+                          // const SizedBox(
+                          //   height: 15,
+                          // ),
+                          // textForm(
+                          //     text: "Status",
+                          //     keyboardType: TextInputType.text,
+                          //     prefix: const Icon(Icons.flag_circle_outlined),
+                          //     controller: statusController,
+                          //     onTap: () {}),
+                        ],
                       ),
-                      textForm(
-                          text: "Date",
-                          keyboardType: TextInputType.none,
-                          prefix: const Icon(Icons.calendar_month),
-                          controller: dateController,
-                          onTap: () {
-                            showDatePicker(
-                                    context: context,
-                                    firstDate: DateTime.now(),
-                                    lastDate: DateTime(2030),
-                                    initialDate: DateTime.now())
-                                .then((value) {
-                              dateController.text =
-                                  DateFormat.yMMMd().format(value!);
-                            });
-                          }),
-                      // const SizedBox(
-                      //   height: 15,
-                      // ),
-                      // textForm(
-                      //     text: "Status",
-                      //     keyboardType: TextInputType.text,
-                      //     prefix: const Icon(Icons.flag_circle_outlined),
-                      //     controller: statusController,
-                      //     onTap: () {}),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              elevation: 50,
-            );
+                  elevation: 50,
+                )
+                .closed
+                .then((value) {
+              setState(() {
+                isBottomSheetShown = !isBottomSheetShown;
+              });
+            });
             setState(() {
               isBottomSheetShown = !isBottomSheetShown;
             });
@@ -164,30 +179,48 @@ class _HomeState extends State<Home> {
             BottomNavigationBarItem(
                 icon: Icon(Icons.archive_outlined), label: "Archive"),
           ]),
-      body: screens[currentState],
+      body: ConditionalBuilderRec(
+        condition: tasks.length > 0,
+        builder: (context) => screens[currentState],
+        fallback: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
     );
   }
 
   void createDatabases() async {
+    var databasesPath = await getDatabasesPath();
+    String path = "$databasesPath/todo.db";
+
+    // حذف قاعدة البيانات القديمة - اختيارياً
+    // await deleteDatabase(path);
+    // print("Old database deleted");
+
+    // إنشاء قاعدة البيانات
     database = await openDatabase(
-      "todo.db",
+      path,
       version: 1,
-      onCreate: (database, version) async {
-        // ignore: avoid_print
+      onCreate: (db, version) async {
         print("Database created");
-        await database
-            .execute(
-                'CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT, date TEXT, time TEXT, status TEXT)')
-            .then((value) {
-          // ignore: avoid_print
-          print("table created");
+        await db.execute('''
+        CREATE TABLE tasks (
+          id INTEGER PRIMARY KEY, 
+          title TEXT, 
+          date TEXT, 
+          time TEXT, 
+          status TEXT
+        )
+      ''').then((value) {
+          print("Table created successfully");
         }).catchError((error) {
-          // ignore: avoid_print
-          print("Error when creating table ${error.toString()}");
+          print("Error creating table: ${error.toString()}");
         });
       },
-      onOpen: (database) {
-        // ignore: avoid_print
+      onOpen: (db) {
+        getDatabase(db).then((value) {
+          tasks = value;
+        });
         print("Database opened");
       },
     );
@@ -212,5 +245,9 @@ class _HomeState extends State<Home> {
         });
       },
     );
+  }
+
+  Future<List<Map>> getDatabase(database) async {
+    return await database!.rawQuery('SELECT * FROM tasks');
   }
 }

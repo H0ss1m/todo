@@ -61,3 +61,40 @@ Widget textForm({
           ))),
     );
 
+Widget buildTaskItem(Map model) => Container(
+      margin: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 45,
+            backgroundColor: Colors.blue,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                '${model['time']}',
+                style: const TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 15,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("${model['title']}",
+                  style: const TextStyle(
+                      fontSize: 25, fontWeight: FontWeight.bold)),
+              const SizedBox(
+                height: 10,
+              ),
+              Text("${model['date']}",
+                  style: const TextStyle(fontSize: 18, color: Colors.grey)),
+            ],
+          )
+        ],
+      ),
+    );

@@ -49,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.18.0"
+  conditional_builder_rec:
+    dependency: "direct main"
+    description:
+      name: conditional_builder_rec
+      sha256: "18bcc3ac11f5f491af6be84d1b0cf41155046e3115896b42f8910c9ae7b17197"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   cupertino_icons:
     dependency: "direct main"
     description:
